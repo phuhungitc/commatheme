@@ -13,9 +13,7 @@
  */
 
 get_header();
-if (get_field('slider_default', 'option') == true && get_field('shortcode_slider_homepage','option')):
-    echo do_shortcode(wp_trim_words(get_field('shortcode_slider_homepage','option')));
-endif; ?>
+?>
     <div class="<?php echo (get_page_template_slug() == 'page-fullwidth.php') ? 'container-fluid' : 'container' ?>">
         <div id="primary" class="content-area">
             <main id="main" class="site-main">

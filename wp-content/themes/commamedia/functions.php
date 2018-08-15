@@ -224,13 +224,11 @@ if (class_exists('WooCommerce')) {
 
 function add_theme_scripts()
 {
-    wp_enqueue_style('style', get_stylesheet_uri());
     wp_enqueue_style('bootstrap', get_template_directory_uri() . '/css/bootstrap.min.css', array(), '1.1', 'all');
+    wp_enqueue_style('style', get_stylesheet_uri());
     wp_enqueue_style('font-awesome', get_template_directory_uri() . '/css/font-awesome.min.css', array(), '1.1', 'all');
-    wp_enqueue_style('custom', get_template_directory_uri() . '/css/custom.css', array(), '1.5', 'all');
 
 
-    wp_enqueue_script('jssor', get_template_directory_uri() . '/js/jssor.slider-27.4.0.min.js', array('jquery'), 1.1, true);
     wp_enqueue_script('bootstrap', get_template_directory_uri() . '/js/bootstrap.bundle.min.js', array('jquery'), 1.1, true);
     wp_enqueue_script('custom', get_template_directory_uri() . '/js/custom.js', array('jquery'), 1.5, true);
 }
@@ -452,60 +450,6 @@ if (function_exists('get_field')):
         endif;
     }
 
-    // Function add custom post type slider
-    if (get_field('slider_default', 'option') == true):
-        function create_custom_post_type()
-        {
-
-            /*
-             * Biến $label để chứa các text liên quan đến tên hiển thị của Post Type trong Admin
-             */
-            $label = array(
-                'name' => 'Sliders', //Tên post type dạng số nhiều
-                'singular_name' => 'slider' //Tên post type dạng số ít
-            );
-
-            /*
-             * Biến $args là những tham số quan trọng trong Post Type
-             */
-            $args = array(
-                'labels' => $label, //Gọi các label trong biến $label ở trên
-                'description' => 'Post type for slider', //Mô tả của post type
-                'supports' => array(
-                    'title',
-//            'editor',
-//            'excerpt',
-//            'author',
-//            'thumbnail',
-//            'comments',
-//            'trackbacks',
-//            'revisions',
-                    'custom-fields'
-                ), //Các tính năng được hỗ trợ trong post type
-                'taxonomies' => array(), //Các taxonomy được phép sử dụng để phân loại nội dung
-                'hierarchical' => false, //Cho phép phân cấp, nếu là false thì post type này giống như Post, true thì giống như Page
-                'public' => false, //Kích hoạt post type
-                'show_ui' => true, //Hiển thị khung quản trị như Post/Page
-                'show_in_menu' => true, //Hiển thị trên Admin Menu (tay trái)
-                'show_in_nav_menus' => false, //Hiển thị trong Appearance -> Menus
-                'show_in_admin_bar' => true, //Hiển thị trên thanh Admin bar màu đen.
-                'menu_position' => 80, //Thứ tự vị trí hiển thị trong menu (tay trái)
-                'menu_icon' => 'dashicons-images-alt2', //Đường dẫn tới icon sẽ hiển thị
-                'can_export' => true, //Có thể export nội dung bằng Tools -> Export
-                'has_archive' => false, //Cho phép lưu trữ (month, date, year)
-                'exclude_from_search' => true, //Loại bỏ khỏi kết quả tìm kiếm
-                'publicly_queryable' => true, //Hiển thị các tham số trong query, phải đặt true
-                'capability_type' => 'post' //
-            );
-
-            register_post_type('slider', $args); //Tạo post type với slug tên là sanpham và các tham số trong biến $args ở trên
-
-        }
-
-        /* Kích hoạt hàm tạo custom post type */
-        add_action('init', 'create_custom_post_type');
-    endif;
-
 endif;
 
 
@@ -590,19 +534,6 @@ function my_enqueue()
             
         }); 
         </script>';
-
-    if ($typenow == 'slider') {
-        echo '<script type="text/javascript">
-        jQuery(document).ready(function(){
-             if(jQuery("#slider_default_shortcode input").length){
-                jQuery("#slider_default_shortcode input").attr({"value":"[slider_default id=\"' . get_the_ID() . '\"]","readonly":"readonly"});
-                jQuery("#slider_default_shortcode input").focus(function(){
-                    jQuery(this).select();
-                })
-            }
-        });
-        </script>';
-    }
 }
 
 add_action('admin_head', 'my_enqueue');
@@ -684,100 +615,690 @@ function isa_disable_dashboard_widgets()
 
 add_action('admin_menu', 'isa_disable_dashboard_widgets');
 
-//Add shortcode slider
-function create_shortcode_slider($args, $content)
-{
-    $id = $args['id'];
-    ?>
-    <div class="slider slider_primary" data-slideid="jssor_<?php echo $id ?>">
-        <div id="jssor_<?php echo $id ?>"
-             style="position:relative;margin:0 auto;top:0px;left:0px;width:1920px;height:500px;overflow:hidden;visibility:hidden;">
-            <!-- Loading Screen -->
-            <div data-u="loading" class="jssorl-004-double-tail-spin"
-                 style="position:absolute;top:0px;left:0px;text-align:center;background-color:rgba(0,0,0,0.7);">
-                <img style="margin-top:-19px;position:relative;top:50%;width:38px;height:38px;"
-                     src="<?php echo get_template_directory_uri() ?>/img/double-tail-spin.svg"/>
-            </div>
-            <div data-u="slides"
-                 style="cursor:default;position:relative;top:0px;left:0px;width:1920px;height:500px;overflow:hidden;">
-                <?php
-                $argsslide = array(
-                    'posts_per_page' => 1,
-                    'post_type' => 'slider',
-                    'post__in' => array($id),
-                    'post_status' => 'publish',
-                );
-                $allslider = new WP_Query($argsslide);
-                if ($allslider->have_posts()):while ($allslider->have_posts()): $allslider->the_post();
-                    foreach (get_field('slider_item') as $v):
-                        ?>
-                        <div data-p="303" class="slide-item <?php the_ID(); ?>"
-                             data-amnslider="<?php echo $v['amination'] ?>">
-                            <img data-u="image" src="<?php echo $v['image_slider'] ?>" class="img-fluid"/>
-                        </div>
-                    <?php
-                    endforeach;
-                endwhile;
-                endif;
-                wp_reset_query(); ?>
 
-            </div>
-            <!-- Bullet Navigator -->
-            <div data-u="navigator" class="jssorb031" style="position:absolute;bottom:12px;right:12px;"
-                 data-autocenter="1" data-scale="0.5" data-scale-bottom="0.75">
-                <div data-u="prototype" class="i" style="width:16px;height:16px;">
-                    <svg viewbox="0 0 16000 16000" style="position:absolute;top:0;left:0;width:100%;height:100%;">
-                        <circle class="b" cx="8000" cy="8000" r="5800"></circle>
-                    </svg>
-                </div>
-            </div>
-            <!-- Arrow Navigator -->
-            <div data-u="arrowleft" class="jssora094" style="width:50px;height:50px;top:0px;left:30px;"
-                 data-autocenter="2" data-scale="0.75" data-scale-left="0.75">
-                <svg viewbox="0 0 16000 16000" style="position:absolute;top:0;left:0;width:100%;height:100%;">
-                    <circle class="c" cx="8000" cy="8000" r="5920"></circle>
-                    <polyline class="a" points="7777.8,6080 5857.8,8000 7777.8,9920 "></polyline>
-                    <line class="a" x1="10142.2" y1="8000" x2="5857.8" y2="8000"></line>
-                </svg>
-            </div>
-            <div data-u="arrowright" class="jssora094" style="width:50px;height:50px;top:0px;right:30px;"
-                 data-autocenter="2" data-scale="0.75" data-scale-right="0.75">
-                <svg viewbox="0 0 16000 16000" style="position:absolute;top:0;left:0;width:100%;height:100%;">
-                    <circle class="c" cx="8000" cy="8000" r="5920"></circle>
-                    <polyline class="a" points="8222.2,6080 10142.2,8000 8222.2,9920 "></polyline>
-                    <line class="a" x1="5857.8" y1="8000" x2="10142.2" y2="8000"></line>
-                </svg>
-            </div>
-        </div>
-    </div>
-    <?php
-}
+if( function_exists('acf_add_local_field_group') ):
 
-add_shortcode('slider_default', 'create_shortcode_slider');
+    acf_add_local_field_group(array(
+        'key' => 'group_5b5858cbc7475',
+        'title' => 'Breadcrumb',
+        'fields' => array(
+            array(
+                'key' => 'field_5b5858dd69894',
+                'label' => 'Content breadcrumb',
+                'name' => 'content_breadcrumb',
+                'type' => 'true_false',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'message' => '',
+                'default_value' => 0,
+                'ui' => 1,
+                'ui_on_text' => 'Full width',
+                'ui_off_text' => 'Container',
+            ),
+            array(
+                'key' => 'field_5b58593aed170',
+                'label' => 'Background breadcrumb',
+                'name' => 'background_breadcrumb',
+                'type' => 'image',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => array(
+                    array(
+                        array(
+                            'field' => 'field_5b5858dd69894',
+                            'operator' => '==',
+                            'value' => '1',
+                        ),
+                    ),
+                ),
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'return_format' => 'url',
+                'preview_size' => 'full',
+                'library' => 'all',
+                'min_width' => '',
+                'min_height' => '',
+                'min_size' => '',
+                'max_width' => '',
+                'max_height' => '',
+                'max_size' => '',
+                'mime_types' => '',
+            ),
+        ),
+        'location' => array(
+            array(
+                array(
+                    'param' => 'post_type',
+                    'operator' => '==',
+                    'value' => 'post',
+                ),
+            ),
+            array(
+                array(
+                    'param' => 'post_type',
+                    'operator' => '==',
+                    'value' => 'page',
+                ),
+            ),
+        ),
+        'menu_order' => 0,
+        'position' => 'normal',
+        'style' => 'default',
+        'label_placement' => 'top',
+        'instruction_placement' => 'label',
+        'hide_on_screen' => '',
+        'active' => 1,
+        'description' => '',
+    ));
 
-//add column admin slider
-add_filter('manage_slider_posts_columns', 'set_custom_edit_slider_columns');
-function set_custom_edit_slider_columns($columns)
-{
-    $columns['shortcode'] = __('Shortcode', 'comma-media');
+    acf_add_local_field_group(array(
+        'key' => 'group_5b56f5e05bb8d',
+        'title' => 'Theme settings',
+        'fields' => array(
+            array(
+                'key' => 'field_5b57e7a3ecd84',
+                'label' => '<span class="dashicons dashicons-admin-tools"></span> General setting',
+                'name' => '',
+                'type' => 'tab',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'placement' => 'left',
+                'endpoint' => 0,
+            ),
+            array(
+                'key' => 'field_5b57e805ecd85',
+                'label' => 'Show breadcrumb',
+                'name' => 'show_breadcrumb',
+                'type' => 'true_false',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'message' => '',
+                'default_value' => 0,
+                'ui' => 1,
+                'ui_on_text' => 'Show',
+                'ui_off_text' => 'Hide',
+            ),
+            array(
+                'key' => 'field_5b58571763f1c',
+                'label' => 'Background breadcrumb default',
+                'name' => 'background_breadcrumb',
+                'type' => 'image',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => array(
+                    array(
+                        array(
+                            'field' => 'field_5b57e805ecd85',
+                            'operator' => '==',
+                            'value' => '1',
+                        ),
+                    ),
+                ),
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'return_format' => 'url',
+                'preview_size' => 'full',
+                'library' => 'all',
+                'min_width' => '',
+                'min_height' => '',
+                'min_size' => '',
+                'max_width' => '',
+                'max_height' => '',
+                'max_size' => '',
+                'mime_types' => '',
+            ),
+            array(
+                'key' => 'field_5b5952dc55b27',
+                'label' => 'Scroll on top',
+                'name' => 'scroll_on_top',
+                'type' => 'true_false',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'message' => '',
+                'default_value' => 1,
+                'ui' => 1,
+                'ui_on_text' => 'Show',
+                'ui_off_text' => 'Hide',
+            ),
+            array(
+                'key' => 'field_5b59530755b28',
+                'label' => 'Image for button scroll on top',
+                'name' => 'image_for_scroll_on_top',
+                'type' => 'image',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => array(
+                    array(
+                        array(
+                            'field' => 'field_5b5952dc55b27',
+                            'operator' => '==',
+                            'value' => '1',
+                        ),
+                    ),
+                ),
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'return_format' => 'url',
+                'preview_size' => 'thumbnail',
+                'library' => 'all',
+                'min_width' => '',
+                'min_height' => '',
+                'min_size' => '',
+                'max_width' => '',
+                'max_height' => '',
+                'max_size' => '',
+                'mime_types' => '',
+            ),
+            array(
+                'key' => 'field_5b598fb2cb7e3',
+                'label' => 'Update WP',
+                'name' => 'update_wp',
+                'type' => 'true_false',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'message' => '',
+                'default_value' => 1,
+                'ui' => 1,
+                'ui_on_text' => 'Turn on',
+                'ui_off_text' => 'Turn off',
+            ),
+            array(
+                'key' => 'field_5b56f5e92cd6f',
+                'label' => '<span class="dashicons dashicons-schedule"></span> Header settings',
+                'name' => '',
+                'type' => 'tab',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'placement' => 'left',
+                'endpoint' => 0,
+            ),
+            array(
+                'key' => 'field_5b56f64d3913c',
+                'label' => 'Header variation',
+                'name' => 'variation',
+                'type' => 'radio',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'choices' => array(
+                    1 => 'Variation one',
+                    2 => 'Variation two',
+                ),
+                'allow_null' => 0,
+                'other_choice' => 0,
+                'save_other_choice' => 0,
+                'default_value' => '',
+                'layout' => 'horizontal',
+                'return_format' => 'value',
+            ),
+            array(
+                'key' => 'field_5b588df2fc750',
+                'label' => 'Demo',
+                'name' => '',
+                'type' => 'message',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => array(
+                    array(
+                        array(
+                            'field' => 'field_5b56f64d3913c',
+                            'operator' => '==',
+                            'value' => '1',
+                        ),
+                    ),
+                ),
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'message' => '<img id="header_varation_1" src="" >',
+                'new_lines' => 'wpautop',
+                'esc_html' => 0,
+            ),
+            array(
+                'key' => 'field_5b588e41fc751',
+                'label' => 'Demo',
+                'name' => '',
+                'type' => 'message',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => array(
+                    array(
+                        array(
+                            'field' => 'field_5b56f64d3913c',
+                            'operator' => '==',
+                            'value' => '2',
+                        ),
+                    ),
+                ),
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'message' => '<img id="header_varation_2" src="" >',
+                'new_lines' => 'wpautop',
+                'esc_html' => 0,
+            ),
+            array(
+                'key' => 'field_5b56f78ef9346',
+                'label' => 'Fixed on scroll',
+                'name' => 'fixed_on_scroll',
+                'type' => 'true_false',
+                'instructions' => 'If enabled, on scroll menu is fixed top',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'message' => '',
+                'default_value' => 0,
+                'ui' => 1,
+                'ui_on_text' => 'Enable',
+                'ui_off_text' => 'Disable',
+            ),
+            array(
+                'key' => 'field_5b56f7a5f9347',
+                'label' => 'Logo',
+                'name' => 'logo',
+                'type' => 'image',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '50',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'return_format' => 'url',
+                'preview_size' => 'full',
+                'library' => 'all',
+                'min_width' => '',
+                'min_height' => '',
+                'min_size' => '',
+                'max_width' => '',
+                'max_height' => '',
+                'max_size' => '',
+                'mime_types' => '',
+            ),
+            array(
+                'key' => 'field_5b56f9326d5eb',
+                'label' => '<span class="dashicons dashicons-archive"></span> Footer settings',
+                'name' => '',
+                'type' => 'tab',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'placement' => 'left',
+                'endpoint' => 0,
+            ),
+            array(
+                'key' => 'field_5b56f96b6d5ec',
+                'label' => 'Footer variation',
+                'name' => 'footer',
+                'type' => 'radio',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'choices' => array(
+                    1 => '1 columns',
+                    2 => '2 columns',
+                    3 => '3 columns',
+                    4 => '4 columns',
+                    5 => '5 columns',
+                ),
+                'allow_null' => 0,
+                'other_choice' => 0,
+                'save_other_choice' => 0,
+                'default_value' => '',
+                'layout' => 'horizontal',
+                'return_format' => 'value',
+            ),
+            array(
+                'key' => 'field_5b56f9c44382b',
+                'label' => 'Copyright',
+                'name' => 'copyright',
+                'type' => 'text',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'default_value' => '',
+                'placeholder' => 'Copyright © 2018 My website. All rights reserved.',
+                'prepend' => '',
+                'append' => '',
+                'maxlength' => '',
+            ),
+            array(
+                'key' => 'field_5b57f12a6d993',
+                'label' => '<span class="dashicons dashicons-email-alt"></span> SMTP settings',
+                'name' => '',
+                'type' => 'tab',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'placement' => 'left',
+                'endpoint' => 0,
+            ),
+            array(
+                'key' => 'field_5b57f1436d994',
+                'label' => 'From email',
+                'name' => 'from_email',
+                'type' => 'email',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '50',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'default_value' => '',
+                'placeholder' => 'smtpmail.commamedia@gmail.com',
+                'prepend' => '',
+                'append' => '',
+            ),
+            array(
+                'key' => 'field_5b57f2b66d995',
+                'label' => 'From name',
+                'name' => 'from_name',
+                'type' => 'text',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '50',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'default_value' => '',
+                'placeholder' => '',
+                'prepend' => '',
+                'append' => '',
+                'maxlength' => '',
+            ),
+            array(
+                'key' => 'field_5b57f30d6d996',
+                'label' => 'SMTP host',
+                'name' => 'smtp_host',
+                'type' => 'text',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'default_value' => '',
+                'placeholder' => 'smtp.gmail.com',
+                'prepend' => '',
+                'append' => '',
+                'maxlength' => '',
+            ),
+            array(
+                'key' => 'field_5b57f3226d997',
+                'label' => 'SMTP port',
+                'name' => 'smtp_port',
+                'type' => 'number',
+                'instructions' => '465 for SSL and 587 for TLS - Port smtp gmail',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'default_value' => '',
+                'placeholder' => '',
+                'prepend' => '',
+                'append' => '',
+                'min' => '',
+                'max' => '',
+                'step' => '',
+            ),
+            array(
+                'key' => 'field_5b57f3616d998',
+                'label' => 'Encryption SSL',
+                'name' => 'encryption_ssl',
+                'type' => 'true_false',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'message' => '',
+                'default_value' => 1,
+                'ui' => 1,
+                'ui_on_text' => 'Yes',
+                'ui_off_text' => 'No',
+            ),
+            array(
+                'key' => 'field_5b57f44b6d99b',
+                'label' => 'Authentication',
+                'name' => 'authentication',
+                'type' => 'true_false',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'message' => '',
+                'default_value' => 1,
+                'ui' => 1,
+                'ui_on_text' => 'Yes',
+                'ui_off_text' => 'No',
+            ),
+            array(
+                'key' => 'field_5b57f4286d999',
+                'label' => 'SMTP Username',
+                'name' => 'smtp_username',
+                'type' => 'text',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => array(
+                    array(
+                        array(
+                            'field' => 'field_5b57f44b6d99b',
+                            'operator' => '==',
+                            'value' => '1',
+                        ),
+                    ),
+                ),
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'default_value' => '',
+                'placeholder' => 'smtpmail.commamedia@gmail.com',
+                'prepend' => '',
+                'append' => '',
+                'maxlength' => '',
+            ),
+            array(
+                'key' => 'field_5b57f42d6d99a',
+                'label' => 'SMTP Password',
+                'name' => 'smtp_password',
+                'type' => 'password',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => array(
+                    array(
+                        array(
+                            'field' => 'field_5b57f44b6d99b',
+                            'operator' => '==',
+                            'value' => '1',
+                        ),
+                    ),
+                ),
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'placeholder' => '',
+                'prepend' => '',
+                'append' => '',
+            ),
+            array(
+                'key' => 'field_5b5d31e00231e',
+                'label' => '<span class="dashicons dashicons-external"></span> More',
+                'name' => '',
+                'type' => 'tab',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'placement' => 'left',
+                'endpoint' => 0,
+            ),
+            array(
+                'key' => 'field_5b5d32280231f',
+                'label' => 'Google analytics',
+                'name' => 'google_analytics',
+                'type' => 'true_false',
+                'instructions' => '',
+                'required' => 0,
+                'conditional_logic' => 0,
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'message' => '',
+                'default_value' => 0,
+                'ui' => 1,
+                'ui_on_text' => 'Enable',
+                'ui_off_text' => 'Disable',
+            ),
+            array(
+                'key' => 'field_5b5d325302320',
+                'label' => 'ID analytics',
+                'name' => 'id_analytics',
+                'type' => 'text',
+                'instructions' => 'Ex: UA-123037889-1',
+                'required' => 0,
+                'conditional_logic' => array(
+                    array(
+                        array(
+                            'field' => 'field_5b5d32280231f',
+                            'operator' => '==',
+                            'value' => '1',
+                        ),
+                    ),
+                ),
+                'wrapper' => array(
+                    'width' => '',
+                    'class' => '',
+                    'id' => '',
+                ),
+                'default_value' => '',
+                'placeholder' => '',
+                'prepend' => '',
+                'append' => '',
+                'maxlength' => '',
+            ),
+        ),
+        'location' => array(
+            array(
+                array(
+                    'param' => 'options_page',
+                    'operator' => '==',
+                    'value' => 'theme-general-settings',
+                ),
+            ),
+        ),
+        'menu_order' => 0,
+        'position' => 'normal',
+        'style' => 'default',
+        'label_placement' => 'top',
+        'instruction_placement' => 'label',
+        'hide_on_screen' => '',
+        'active' => 1,
+        'description' => '',
+    ));
 
-    return $columns;
-}
-
-// Add the data to the custom columns for the book post type:
-add_action('manage_slider_posts_custom_column', 'custom_slider_column', 10, 2);
-function custom_slider_column($column, $post_id)
-{
-    switch ($column) {
-
-        case 'shortcode' :
-            $terms = get_field('shortcode', $post_id);
-            if (is_string($terms))
-                echo $terms;
-            else
-                _e('Empty', 'comma-media');
-            break;
-
-
-    }
-}
+endif;

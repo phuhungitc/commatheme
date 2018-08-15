@@ -196,7 +196,7 @@ App = {
 };
 jQuery(document).ready(function () {
     App.scrollfixed();
-    App.jssorslider();
+    // App.jssorslider();
     App.menumobile();
     App.scrolltop();
 });
